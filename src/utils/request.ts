@@ -1,5 +1,6 @@
 import { notification } from 'antd'
 import axios, { AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
+import { isObject } from './utils'
 
 axios.defaults.baseURL = 'http://localhost:9999'
 
@@ -71,5 +72,24 @@ axios.interceptors.response.use(
 
 export const request = axios
 
-export const fetcher = async (url: string): Promise<any> =>
-  await request.get(url).then((res: AxiosResponse) => res.data)
+interface FetcherWithParams {
+  url: string
+  params?: any
+}
+
+export const fetcher = async (payload: string | FetcherWithParams): Promise<any> => {
+  let url = '/'
+  let params = {}
+  if (typeof payload === 'string') {
+    url = payload
+  } else if (isObject(payload) && payload.url != null && typeof payload.url === 'string') {
+    const _payload = payload
+    url = _payload.url
+    params = payload.params
+  }
+  return await request
+    .get(url, {
+      params
+    })
+    .then((res: AxiosResponse) => res.data)
+}
